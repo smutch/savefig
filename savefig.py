@@ -53,6 +53,20 @@ def get_git_info():
     return ret
 
 
+def update_git_info_with_extra(git_info, extra_info):
+    # Append an indentifier to all extra info keys
+    for k in extra_info.keys():
+        extra_info["extra-{0}".format(k)] = extra_info.pop(k)
+
+    # Deal with different combinations of git_info and extra_info.
+    if git_info is None:
+        git_info = extra_info
+    else:
+        git_info = dict(git_info, **extra_info)
+
+    return git_info
+
+
 def savefig_png(self, fn, *args, **kwargs):
     # This is a hack to deal with filenames without extensions. Not sure why
     # this is necessary.
@@ -69,6 +83,13 @@ def savefig_png(self, fn, *args, **kwargs):
 
     # Get the git commit information.
     git_info = get_git_info()
+
+    # See if we have any extra information to save
+    extra_info = kwargs.get("extra_info", None)
+    if extra_info is not None:
+        git_info = update_git_info_with_extra(git_info, extra_info)
+
+    # If there is no information, just call the mpl savefig.
     if git_info is None:
         return ret
 
@@ -85,6 +106,13 @@ def savefig_png(self, fn, *args, **kwargs):
 def savefig_pdf(self, fn, *args, **kwargs):
     # Get the git commit information.
     git_info = get_git_info()
+
+    # See if we have any extra information to save
+    extra_info = kwargs.get("extra_info", None)
+    if extra_info is not None:
+        git_info = update_git_info_with_extra(git_info, extra_info)
+
+    # If there is no information, just call the mpl savefig.
     if git_info is None:
         return mpl_savefig(self, fn, *args, **kwargs)
 
@@ -249,6 +277,8 @@ if __name__ == "__main__":
     parser.add_argument("filename", help="The file to inspect")
     parser.add_argument("-d", "--diff", action="store_true",
                         help="Get the diff.")
+    parser.add_argument("-e", "--extra", action="store_true",
+                        help="Get any extra information.")
     args = parser.parse_args()
 
     # Get the file info.
@@ -263,6 +293,18 @@ if __name__ == "__main__":
             print(info["git-diff"])
             sys.exit(0)
         print("No diff found.")
+
+    # Show the extra information if requested.
+    if args.extra:
+        found = False
+        for k, v in info.items():
+            if k[:6] == "extra-":
+                k = k[6:]
+                print("{0}::\n{1}".format(k, v))
+                found = True
+        if not found:
+            print("No extra information found.")
+        sys.exit(0)
 
     # Print the summary.
     keys = ["git-hash", "git-date", "git-author"]
