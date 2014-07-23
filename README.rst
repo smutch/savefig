@@ -44,6 +44,15 @@ to make the figure by running::
 
     python -m savefig /path/to/figure.png --diff
 
+Arbitrary extra information can be added to an image file by passing a
+dictionary to the monkey patched ``savefig`` command via the ``extra_info``
+keyword. e.g.::
+
+    extra_info = {"test", "This is some test info."}
+    pylab.savefig("/path/to/figure.png", extra_info=extra_info)
+
+This is particularly useful for additionally storing a git commit hash for the
+code which may have been used to produce the data being plotted.
 
 License
 -------
