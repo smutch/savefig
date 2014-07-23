@@ -55,6 +55,7 @@ def get_git_info():
 
 def update_git_info_with_extra(git_info, extra_info):
     # Append an indentifier to all extra info keys
+    extra_info = extra_info.copy()
     for k in extra_info.keys():
         extra_info["extra-{0}".format(k)] = extra_info.pop(k)
 
@@ -193,19 +194,22 @@ def test_png():
 
     # Get the current git info.
     git_info = get_git_info()
+    extra_info = {"test": "This is extra information."}
+    git_info = update_git_info_with_extra(git_info, extra_info)
 
     # Save an empty figure to a temporary file and check that the git info
     # gets stored correctly.
     with NamedTemporaryFile(suffix=".png") as f:
         fn = f.name
-        pl.savefig(fn)
+        pl.savefig(fn, extra_info=extra_info)
         info = get_file_info(fn)
         assert all([v == info[k] for k, v in git_info.items()])
 
     # Now try without a file extension.
     with NamedTemporaryFile(suffix=".png") as f:
         fn = f.name
-        pl.savefig(os.path.splitext(fn)[0], format="png")
+        pl.savefig(os.path.splitext(fn)[0], format="png",
+                   extra_info=extra_info)
         info = get_file_info(fn)
         assert all([v == info[k] for k, v in git_info.items()])
 
@@ -214,7 +218,7 @@ def test_png():
         return
     with NamedTemporaryFile(suffix=".png") as f:
         fn = f.name
-        pl.savefig(os.path.splitext(fn)[0])
+        pl.savefig(os.path.splitext(fn)[0], extra_info=extra_info)
         info = get_file_info(fn)
         assert all([v == info[k] for k, v in git_info.items()])
 
@@ -225,13 +229,15 @@ def test_pdf():
 
     # Get the current git info.
     git_info = get_git_info()
+    extra_info = {"test": "This is extra information."}
+    git_info = update_git_info_with_extra(git_info, extra_info)
 
     # Save an empty figure to a temporary file and check that the git info
     # gets stored correctly.
     try:
         with NamedTemporaryFile(suffix=".pdf", delete=False) as f:
             fn = f.name
-        pl.savefig(fn)
+        pl.savefig(fn, extra_info=extra_info)
         info = get_file_info(fn)
         assert all([v == info[k] for k, v in git_info.items()])
     finally:
@@ -241,7 +247,8 @@ def test_pdf():
     try:
         with NamedTemporaryFile(suffix=".pdf", delete=False) as f:
             fn = f.name
-        pl.savefig(os.path.splitext(fn)[0], format="pdf")
+        pl.savefig(os.path.splitext(fn)[0], format="pdf",
+                   extra_info=extra_info)
         info = get_file_info(fn)
         assert all([v == info[k] for k, v in git_info.items()])
     finally:
@@ -253,7 +260,7 @@ def test_pdf():
     try:
         with NamedTemporaryFile(suffix=".pdf", delete=False) as f:
             fn = f.name
-        pl.savefig(os.path.splitext(fn)[0])
+        pl.savefig(os.path.splitext(fn)[0], extra_info=extra_info)
         info = get_file_info(fn)
         assert all([v == info[k] for k, v in git_info.items()])
     finally:
@@ -297,7 +304,7 @@ if __name__ == "__main__":
     # Show the extra information if requested.
     if args.extra:
         found = False
-        for k, v in info.items():
+        for k, v in info.iteritems():
             if k[:6] == "extra-":
                 k = k[6:]
                 print("{0}::\n{1}".format(k, v))
