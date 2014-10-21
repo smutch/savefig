@@ -98,7 +98,7 @@ def savefig_png(self, fn, *args, **kwargs):
     img = Image.open(fn)
     meta = PngImagePlugin.PngInfo()
     for k, v in git_info.items():
-        meta.add_text(k, v)
+        meta.add_text(k, str(v))
     img.save(fn, "png", pnginfo=meta)
 
     return ret
@@ -307,7 +307,12 @@ if __name__ == "__main__":
         for k, v in info.iteritems():
             if k[:6] == "extra-":
                 k = k[6:]
-                print("{0}::\n{1}".format(k, v))
+                if type(v) is not dict:
+                    print("{0:30s}:\t{1}".format(k, v))
+                else:
+                    print("{0} :".format(k))
+                    for kd, vd in v.iteritems():
+                        print("\t{0:30s}:\t{1}".format(kd, vd))
                 found = True
         if not found:
             print("No extra information found.")
