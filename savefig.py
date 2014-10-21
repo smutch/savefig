@@ -14,6 +14,7 @@ from subprocess import check_output, CalledProcessError, PIPE
 from matplotlib import rcParams
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_pdf import PdfPages
+from numpy import __name__ as np_name
 
 try:
     from PIL import Image, PngImagePlugin
@@ -56,6 +57,7 @@ def get_git_info():
 def update_git_info_with_extra(git_info, extra_info):
     # Append an indentifier to all extra info keys
     extra_info = extra_info.copy()
+    extra_info = make_serializable(extra_info)
     for k in extra_info.keys():
         extra_info["extra-{0}".format(k)] = extra_info.pop(k)
 
@@ -265,6 +267,18 @@ def test_pdf():
         assert all([v == info[k] for k, v in git_info.items()])
     finally:
         os.unlink(fn)
+
+
+def make_serializable(d):
+    if type(d) == dict:
+        for k, v in d.iteritems():
+            d[k] = make_serializable(v)
+    else:
+        if type(d).__module__ == np_name:
+            return d.tolist()
+        else:
+            return d
+    return d
 
 
 if __name__ == "__main__":
